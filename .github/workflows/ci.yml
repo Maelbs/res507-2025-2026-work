@@ -10,5 +10,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Run Integration Tests
+        run: |
+          cd labs/20-containerized-node-app
+          docker compose -f docker/compose.yaml run \
+            -v ./app/tests:/app/tests \
+            app \
+            node --test tests/app.test.js
+
       - name: Run preview script
         run: ./scripts/ci-preview.sh
