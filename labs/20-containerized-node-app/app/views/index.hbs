@@ -6,30 +6,119 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>QuoteBoard</title>
   <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-color: #333;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+    }
+
     body {
-      font-family: system-ui, sans-serif;
-      max-width: 700px;
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 650px;
       margin: 2rem auto;
-      padding: 0 1rem;
-      background: #111;
-      color: #eee;
+      padding: 0 1.5rem;
+      background: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    h1 {
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+      color: #fff;
     }
 
     form {
-      display: grid;
-      gap: .5rem;
-      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 3rem;
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
     }
 
     input,
-    textarea,
+    textarea {
+      font: inherit;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      background: var(--bg-color);
+      color: var(--text-main);
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent-color);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
     button {
       font: inherit;
+      font-weight: 600;
+      padding: 0.75rem;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
       margin-top: 0.5rem;
     }
 
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    .quotes-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
     .quote {
-      margin-bottom: 1rem;
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .quote-text {
+      font-size: 1.125rem;
+      font-style: italic;
+      margin-bottom: 0.75rem;
+      color: #fff;
+    }
+
+    .quote-text::before { content: '"'; }
+    .quote-text::after { content: '"'; }
+
+    .quote-author {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 2rem;
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px dashed var(--border-color);
     }
   </style>
 </head>
@@ -43,16 +132,18 @@
     <button type="submit">Add quote</button>
   </form>
 
-  {{#if quotes.length}}
-  {{#each quotes}}
-  <div class="quote">
-    <div>{{this.text}}</div>
-    <div>— {{this.author}}</div>
+  <div class="quotes-container">
+    {{#if quotes.length}}
+      {{#each quotes}}
+      <div class="quote">
+        <div class="quote-text">{{this.text}}</div>
+        <div class="quote-author">— {{#if this.author}}{{this.author}}{{else}}Anonymous{{/if}}</div>
+      </div>
+      {{/each}}
+    {{else}}
+      <div class="empty-state">No quotes yet. Add the first one above.</div>
+    {{/if}}
   </div>
-  {{/each}}
-  {{else}}
-  <p>No quotes yet. Add the first one.</p>
-  {{/if}}
 </body>
 
 </html>
