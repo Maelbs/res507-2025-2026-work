@@ -5,7 +5,7 @@ import handlebars from "handlebars";
 import postgres from "@fastify/postgres";
 
 export async function buildApp() {
-  const error = ( ;
+  // const error = ( ;
   // Create Fastify instance
   const app = Fastify({ logger: true });
 
