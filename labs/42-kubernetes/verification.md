@@ -85,36 +85,44 @@ Fix: Restored the probe path to /health. The application returned a 200 OK, sati
 
 
 
-Extension: Lane A (Resource Requests & Limits)
-The Change: Added Resources to deployment.yaml
+## Extension: Lane A (Resource Requests & Limits)
 
-YAML
+**The Change: Forcing an OOMKilled on the Deployment**
+To demonstrate a memory limit violation, the memory limit on the main `quote-app` was temporarily lowered to `16Mi`—a value too small for the Node.js runtime to boot:
+```yaml
           resources:
             requests:
               cpu: "100m"
-              memory: "128Mi"
+              memory: "16Mi"
             limits:
               cpu: "250m"
-              memory: "256Mi"
+              memory: "16Mi"
 
 
 
-Verification Result (Limits actively applied to the Pod):
+Verification Result (Observed OOMKilled effect):
 
 Bash
-$ kubectl describe pod -l app=quote-app | grep -A 5 Limits:
-    Limits:
-      cpu:     250m
-      memory:  256Mi
-    Requests:
-      cpu:     100m
-      memory:  128Mi
+$ kubectl get pods -l app=quote-app
+NAME                         READY   STATUS      RESTARTS      AGE
+quote-app-8566b6c77d-j8kwm   0/1     OOMKilled   2 (14s ago)   22s
+
+
+bash
+$ kubectl get pod quote-app-8566b6c77d-j8kwm -o yaml | grep -A 5 state:
+    state:
+      terminated:
+        containerID: containerd://...
+        exitCode: 137
+        reason: OOMKilled
+(After this test, the configuration was restored to a healthy limit of 256Mi and requests of 128Mi).
+
 
 What it demonstrates:
 
-Request vs. Limit: A request (100m/128Mi) is the baseline guaranteed resources that the scheduler uses to find a node with enough capacity to place the Pod. A limit (250m/256Mi) is the absolute maximum cap enforced at runtime by the container runtime.
+Request vs. Limit: A request is the minimum baseline guaranteed amount of resources used by the scheduler to place the Pod. A limit is the absolute maximum hard cap enforced at runtime.
 
-Cluster Stability: By enforcing a hard memory limit on the quote-app deployment, we ensure that if the application suffers a memory leak and exceeds 256Mi, the Linux kernel will terminate it (OOMKilled). This contains the failure to the specific Pod and prevents it from consuming all node memory, which would otherwise starve other applications or critical system processes like the kubelet.
+Cluster Stability: By enforcing a memory limit, we ensure that if a container requests more RAM than allowed (in this case, basic Node.js startup exceeding 16Mi), the Linux kernel terminates the process (OOMKilled). This protects the cluster by ensuring a single bad Pod cannot consume all the Node's memory and starve other critical system processes.
 
 
 
