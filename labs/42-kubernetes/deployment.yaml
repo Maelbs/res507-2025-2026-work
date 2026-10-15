@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: quote-app
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: quote-app
@@ -18,6 +18,24 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
+
+          #Lane A
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+
+          # Lane B
+          livenessProbe:
+            httpGet:
+              path: /health #/does-not-exist
+              port: 3000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+
           readinessProbe:
             httpGet:
               path: /health
