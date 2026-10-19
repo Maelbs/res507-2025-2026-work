@@ -18,6 +18,13 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
+          
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: quote-db-secret
+                  key: DATABASE_URL
 
           #Lane A
           resources:
@@ -31,7 +38,7 @@ spec:
           # Lane B
           livenessProbe:
             httpGet:
-              path: /health #/does-not-exist
+              path: /health
               port: 3000
             initialDelaySeconds: 3
             periodSeconds: 5

@@ -109,7 +109,7 @@ quote-app-8566b6c77d-j8kwm   0/1     OOMKilled   2 (14s ago)   22s
 
 
 bash
-$ kubectl get pod quote-app-8566b6c77d-j8kwm -o yaml | grep -A 5 state:
+$ kubectl get pod quote-app-8566b6c77d-j8kwm -o yaml | grep -A 5 state
     state:
       terminated:
         containerID: containerd://...
