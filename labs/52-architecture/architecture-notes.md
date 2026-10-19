@@ -63,3 +63,13 @@ Les conteneurs de l'application (`quote-app`) et de la base de données (`quote-
 
 ## 5. Next Action / Limitation
 **Action suivante / Limitation principale :** L'architecture actuelle repose sur un seul nœud (Single Point of Failure). La prochaine étape consisterait à ajouter un nœud *worker* au cluster K3s pour séparer les charges applicatives des charges de base de données, et utiliser un stockage distribué ou externe managé.
+
+## 6. Single Point of Failure (SPOF) & Improvement
+**SPOF Identifié :** L'architecture actuelle repose sur un nœud Kubernetes unique (la VM Ubuntu). Si cette machine virtuelle s'éteint ou si son disque dur lâche, l'ensemble des pods (application et base de données) tombe en panne. Le stockage `local-path` du PVC lie irrémédiablement les données à cette seule VM.
+
+**Amélioration possible :** Déployer un cluster multi-nœuds (ex: 1 Control Plane et 2 Workers) avec des règles d'anti-affinité pour que les réplicas `quote-app` soient répartis sur des machines différentes. Pour la base de données, utiliser un stockage distribué (comme Longhorn) ou un service PostgreSQL managé externe.
+
+**Trade-off (Compromis) :** Cette haute disponibilité augmenterait considérablement la consommation de ressources matérielles (RAM/CPU) sur la machine hôte. De plus, cela complexifie la gestion de l'infrastructure et introduit une latence réseau supplémentaire entre les nœuds.
+
+
+## pour tester: kubectl port-forward svc/quote-app 8080:80 --address 0.0.0.0 
