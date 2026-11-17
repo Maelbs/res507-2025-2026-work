@@ -3,52 +3,45 @@
 ## 1. Architecture Diagram
 ```mermaid
 graph TD
-    subgraph Host ["Ordinateur Physique"]
-        Browser ["Navigateur Web"]
-    end
+subgraph Host [Ordinateur Physique]
+Browser["Navigateur Web"]
+end
 
-    subgraph VM ["Machine Virtuelle Ubuntu (VirtualBox)"]
-        subgraph K3s ["Cluster Kubernetes K3s"]
-            
-            SvcApp ["Service: quote-app"]
-            
-            subgraph DepApp ["Deployment: quote-app"]
-                Pod1 ("Pod 1 : Node.js")
-                Pod2 ("Pod 2 : Node.js")
-                Pod3 ("Pod 3 : Node.js")
-            end
-            
-            SvcDB ["Service: quote-db"]
-            
-            subgraph DepDB ["Deployment: quote-db"]
-                PodDB [("Pod: PostgreSQL")]
-            end
-            
-            PVC ["PVC: quote-db-data\n(stockage local-path)"]
-            
-        end
-    end
+subgraph VM [Machine Virtuelle Ubuntu VirtualBox]
+subgraph K3s [Cluster Kubernetes K3s]
+SvcApp["Service: quote-app"]
 
-    %% Connexions externes
-    Browser -- "Port-Forward (8080:80)" --> SvcApp
+subgraph DepApp [Deployment: quote-app]
+Pod1("Pod 1 : Node.js")
+Pod2("Pod 2 : Node.js")
+Pod3("Pod 3 : Node.js")
+end
 
-    %% Routage du service App vers les Pods App
-    SvcApp --> Pod1
-    SvcApp --> Pod2
-    SvcApp --> Pod3
+SvcDB["Service: quote-db"]
 
-    %% Trafic interne des Pods App vers le Service DB
-    Pod1 -. "DATABASE_URL" .-> SvcDB
-    Pod2 -. "DATABASE_URL" .-> SvcDB
-    Pod3 -. "DATABASE_URL" .-> SvcDB
+subgraph DepDB [Deployment: quote-db]
+PodDB[("Pod: PostgreSQL")]
+end
 
-    %% Routage du service DB vers le Pod DB et stockage
-    SvcDB --> PodDB
-    PodDB --> PVC
+PVC["PVC: quote-db-data stockage local-path"]
+end
+end
 
-    %% Styles
-    classDef k8s fill:#326ce5,stroke:#fff,stroke-width:2px,color:#fff;
-    class SvcApp,SvcDB k8s;
+Browser -- "Port-Forward 8080:80" --> SvcApp
+
+SvcApp --> Pod1
+SvcApp --> Pod2
+SvcApp --> Pod3
+
+Pod1 -. "DATABASE_URL" .-> SvcDB
+Pod2 -. "DATABASE_URL" .-> SvcDB
+Pod3 -. "DATABASE_URL" .-> SvcDB
+
+SvcDB --> PodDB
+PodDB --> PVC
+
+classDef k8s fill:#326ce5,stroke:#fff,stroke-width:2px,color:#fff;
+class SvcApp,SvcDB k8s;
 ```
 
 **Traffic Paths vs. Boundaries:**
