@@ -7,7 +7,7 @@ subgraph Host [Ordinateur Physique]
 Browser["Navigateur Web"]
 end
 
-subgraph VM [Machine Virtuelle Ubuntu VirtualBox]
+subgraph VM [Machine Virtuelle Ubuntu]
 subgraph K3s [Cluster Kubernetes K3s]
 SvcApp["Service: quote-app"]
 
@@ -23,19 +23,19 @@ subgraph DepDB [Deployment: quote-db]
 PodDB[("Pod: PostgreSQL")]
 end
 
-PVC["PVC: quote-db-data stockage local-path"]
+PVC["PVC: quote-db-data"]
 end
 end
 
-Browser -- "Port-Forward 8080:80" --> SvcApp
+Browser -->|Port-Forward 8080:80| SvcApp
 
 SvcApp --> Pod1
 SvcApp --> Pod2
 SvcApp --> Pod3
 
-Pod1 -. "DATABASE_URL" .-> SvcDB
-Pod2 -. "DATABASE_URL" .-> SvcDB
-Pod3 -. "DATABASE_URL" .-> SvcDB
+Pod1 -.->|DATABASE_URL| SvcDB
+Pod2 -.->|DATABASE_URL| SvcDB
+Pod3 -.->|DATABASE_URL| SvcDB
 
 SvcDB --> PodDB
 PodDB --> PVC
