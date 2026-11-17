@@ -1,44 +1,55 @@
 # Architecture Notes - Lab 52
 
 ## 1. Architecture Diagram
-[ Ordinateur Physique (Navigateur Web) ]
-       |
-       | (Port-Forward temporaire 8080:80)
-       v
-+-------------------------------------------------------------------+
-|  Machine Virtuelle Ubuntu (Hyperviseur: VirtualBox)               |
-|  (Noyau invité partagé par tous les conteneurs)                   |
-|                                                                   |
-|  +-------------------------------------------------------------+  |
-|  | Cluster Kubernetes (K3s)                                    |  |
-|  |                                                             |  |
-|  |            [ Service: quote-app (Port 80) ]                 |  |
-|  |                           |                                 |  |
-|  |                           v                                 |  |
-|  |  +-------------------------------------------------------+  |  |
-|  |  | Deployment: quote-app (Node.js)                       |  |  |
-|  |  |                                                       |  |  |
-|  |  |    +---------+       +---------+       +---------+    |  |  |
-|  |  |    |  Pod 1  |       |  Pod 2  |       |  Pod 3  |    |  |  |
-|  |  |    +---------+       +---------+       +---------+    |  |  |
-|  |  +-------------------------------------------------------+  |  |
-|  |                           |                                 |  |
-|  |                           |(Trafic interne via DATABASE_URL)|  |
-|  |                           v                                 |  |
-|  |            [ Service: quote-db (Port 5432)]                 |  |
-|  |                           |                                 |  |
-|  |                           v                                 |  |
-|  |  +-------------------------------------------------------+  |  |
-|  |  | Deployment: quote-db                                  |  |  |
-|  |  |    +---------------------------------------------+    |  |  |
-|  |  |    | Pod: PostgreSQL (quote-db-xxxx)             |    |  |  |
-|  |  |    +---------------------------------------------+    |  |  |
-|  |  +-------------------------------------------------------+  |  |
-|  |                           |                                 |  |
-|  |                           v                                 |  |
-|  |             [ PVC: quote-db-data (local-path) ]             |  |
-|  +-------------------------------------------------------------+  |
-+-------------------------------------------------------------------+
+```mermaid
+graph TD
+    subgraph Host ["Ordinateur Physique"]
+        Browser ["Navigateur Web"]
+    end
+
+    subgraph VM ["Machine Virtuelle Ubuntu (VirtualBox)"]
+        subgraph K3s ["Cluster Kubernetes K3s"]
+            
+            SvcApp ["Service: quote-app"]
+            
+            subgraph DepApp ["Deployment: quote-app"]
+                Pod1 ("Pod 1 : Node.js")
+                Pod2 ("Pod 2 : Node.js")
+                Pod3 ("Pod 3 : Node.js")
+            end
+            
+            SvcDB ["Service: quote-db"]
+            
+            subgraph DepDB ["Deployment: quote-db"]
+                PodDB [("Pod: PostgreSQL")]
+            end
+            
+            PVC ["PVC: quote-db-data\n(stockage local-path)"]
+            
+        end
+    end
+
+    %% Connexions externes
+    Browser -- "Port-Forward (8080:80)" --> SvcApp
+
+    %% Routage du service App vers les Pods App
+    SvcApp --> Pod1
+    SvcApp --> Pod2
+    SvcApp --> Pod3
+
+    %% Trafic interne des Pods App vers le Service DB
+    Pod1 -. "DATABASE_URL" .-> SvcDB
+    Pod2 -. "DATABASE_URL" .-> SvcDB
+    Pod3 -. "DATABASE_URL" .-> SvcDB
+
+    %% Routage du service DB vers le Pod DB et stockage
+    SvcDB --> PodDB
+    PodDB --> PVC
+
+    %% Styles
+    classDef k8s fill:#326ce5,stroke:#fff,stroke-width:2px,color:#fff;
+    class SvcApp,SvcDB k8s;
+```
 
 **Traffic Paths vs. Boundaries:**
 - Le "Port-forward" (tunnel temporaire) envoie le trafic depuis l'hôte (laptop) directement au Service `quote-app`, qui sélectionne un Pod spécifique. Cela ne démontre pas la répartition de charge (load-balancing) du Service.
